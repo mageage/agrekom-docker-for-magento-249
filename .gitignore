@@ -1,0 +1,12 @@
+# Local config and secrets
+.env
+auth.json
+
+# Magento source (fresh install) and logs
+/src/
+*.log
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
