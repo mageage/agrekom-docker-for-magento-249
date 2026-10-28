@@ -59,8 +59,8 @@ All agrekom packages have a **`2.x` branch** for Magento 2.4.9. Releases are tag
 | agrekom/send-order-to-google-analytics-module        | bitbucket.org/agrekom/send-order-to-google-analytics-module       | explicit nullable types, declares `jflight/gacookie` |
 | agrekom/video-promotional-campaign-module            | bitbucket.org/agrekom/video-promotional-campaign                  | removed duplicate `Agrekom::top_level` admin menu |
 | e-warsztat/core-module                               | bitbucket.org/e-warsztat/core-module                              | – |
-| creativestyle/theme-agrekom                          | github.com/jarekherisz/agrekom_frontend                           | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock`; v2.0.1: customer login template |
-| creativestyle/theme-ewarsztat                        | github.com/jarekherisz/ewarsztat_frontend                         | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock`; v2.0.1: customer login template |
+| creativestyle/theme-agrekom                          | github.com/jarekherisz/agrekom_frontend                           | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock`; v2.0.1: customer login template; v2.0.2: non-empty `_module.less` overrides |
+| creativestyle/theme-ewarsztat                        | github.com/jarekherisz/ewarsztat_frontend                         | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock`; v2.0.1: customer login template; v2.0.2: non-empty `_module.less` overrides |
 
 "–" means `v2.0.0` is the same commit as the last 1.x tag (the code already worked on 2.4.9).
 
@@ -146,6 +146,8 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
 - **`login.phtml`.** Creativeshop 19's customer login template reads `login_button_view_model`; 2.4.9 passes
   `button_lock_manager` instead. Both child themes ship `src/Magento_Customer/templates/form/login.phtml`
   (Creativeshop's template with only that change).
+- **Empty `_module.less`.** Creativeshop switches off Magento_Bundle, Magento_PurchaseOrder and Magento_NegotiableQuote
+  styles with empty files; 2.4.8+ refuses empty LESS sources. Both child themes ship comment-only replacements.
 - **`root.phtml`.** Magento 2.4.8+ renders CSS/JS through `$headCritical` and `$headAssets`. Creativeshop 19's
   `root.phtml` (aligned with 2.4.6) does not print them, so pages had no CSS and no RequireJS.
   Both child themes now ship `src/Magento_Theme/templates/root.phtml` aligned with 2.4.9.
@@ -160,6 +162,8 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
 | `Implicitly marking parameter … as nullable is deprecated` (PHP 8.4+) – fatal in developer mode | 33 parameters in 5 agrekom modules | `?Type $x = null` (php-cs-fixer `nullable_type_declaration_for_default_null_value`) |
 | `Class "Jflight\GACookie\GACookie" does not exist` during `setup:di:compile` | send-order-to-google-analytics-module | require `jflight/gacookie` |
 | Storefront without CSS/JS | Creativeshop 19 `root.phtml` | 2.4.9 `root.phtml` in child themes |
+| `css/styles-l.css` 404: `Unable to get content for '…/Magento_Bundle/css/source/_module.less' after 3 attempts` | Creativeshop 19 empty `_module.less` (Bundle, PurchaseOrder, NegotiableQuote); 2.4.8+ refuses empty sources | comment-only overrides in the child themes (theme v2.0.2) |
+| `css/styles-m.css` 404: `variable @checkout-shipping-address__max-width is undefined` | Magento_PaymentServicesPaypal LESS (bundled with 2.4.9) | Payment Services modules disabled (`disabled-modules.txt`) |
 | Customer login page: `Call to a member function disabled() on null` | Creativeshop 19 `Magento_Customer/templates/form/login.phtml` (`login_button_view_model`, removed in 2.4.9) | child themes override it using `button_lock_manager` (theme v2.0.1) |
 | `Script error for "jquery-ui-modules/core"` | olegnax-quick-view-module | jQuery UI 1.13 has no core module – dependency removed |
 | Admin: `Duplicate key-sequence ['Agrekom::top_level']` in `menu.xml` | product-configurator + video-promotional-campaign | top-level menu declared once (product-configurator) |
@@ -218,9 +222,6 @@ shipped; the UK store sends a copy of order e-mails to hello@agrekom.co.uk (caug
 
 ## Open items
 
-- Themes `v2.0.2` (pending): Creativeshop ships empty `_module.less` files (Magento_Bundle, Magento_PurchaseOrder,
-  Magento_NegotiableQuote); Magento 2.4.8+ refuses empty LESS sources and `css/styles-l.css` returned 404.
-  The child themes override them with comment-only files (uncommitted in the theme repos).
 - theme-agrekom: make the hard-coded Google Ads tag configurable (e.g. only when `google/adwords/active`).
 - Intermittent `Error during Content Constructor component rendering: Call to a member function toHtml() on null`
   in `system.log` – seen 8× during testing, not reproducible on request; pages render.
