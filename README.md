@@ -26,6 +26,8 @@ Containers are named `Agrekom_249-<service>`.
 - For the agrekom code: an SSH key (`SSH_KEY` in `.env`, default `~/.ssh/id_rsa`) with access to
   bitbucket.org/agrekom, bitbucket.org/e-warsztat and github.com/jarekherisz, and [nvm](https://github.com/nvm-sh/nvm)
   for the theme builds (Node 16).
+- A `~/.gitconfig` with `user.name` / `user.email` (`GITCONFIG` in `.env`): mounted into the php container so commits
+  in the `vendor/agrekom/*` clones carry your identity.
 
 ## Quick start
 

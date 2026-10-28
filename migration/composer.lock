@@ -3987,16 +3987,16 @@
         },
         {
             "name": "creativestyle/theme-agrekom",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "git@github.com:jarekherisz/agrekom_frontend.git",
-                "reference": "5f46d0c13623e8d45d35ff89dbe6cf8a32df716c"
+                "reference": "fd7e8963f466985c863c77e3f002012687ef03c4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jarekherisz/agrekom_frontend/zipball/5f46d0c13623e8d45d35ff89dbe6cf8a32df716c",
-                "reference": "5f46d0c13623e8d45d35ff89dbe6cf8a32df716c",
+                "url": "https://api.github.com/repos/jarekherisz/agrekom_frontend/zipball/fd7e8963f466985c863c77e3f002012687ef03c4",
+                "reference": "fd7e8963f466985c863c77e3f002012687ef03c4",
                 "shasum": ""
             },
             "require": {
@@ -4005,7 +4005,7 @@
             "type": "library",
             "description": "agrekom Magento Theme",
             "homepage": "https://creativestyle.de",
-            "time": "2026-10-28T10:11:02+00:00"
+            "time": "2026-10-28T11:38:03+00:00"
         },
         {
             "name": "creativestyle/theme-creativeshop",
@@ -4047,16 +4047,16 @@
         },
         {
             "name": "creativestyle/theme-ewarsztat",
-            "version": "v2.0.0",
+            "version": "v2.0.1",
             "source": {
                 "type": "git",
                 "url": "git@github.com:jarekherisz/ewarsztat_frontend.git",
-                "reference": "7bebefde1403c7a60d836c9f060c11336e868da3"
+                "reference": "ae45af84a87229aaa7b7ec253c4668c30012ee57"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jarekherisz/ewarsztat_frontend/zipball/7bebefde1403c7a60d836c9f060c11336e868da3",
-                "reference": "7bebefde1403c7a60d836c9f060c11336e868da3",
+                "url": "https://api.github.com/repos/jarekherisz/ewarsztat_frontend/zipball/ae45af84a87229aaa7b7ec253c4668c30012ee57",
+                "reference": "ae45af84a87229aaa7b7ec253c4668c30012ee57",
                 "shasum": ""
             },
             "require": {
@@ -4065,7 +4065,7 @@
             "type": "library",
             "description": "ewarsztat Magento Theme",
             "homepage": "https://creativestyle.de",
-            "time": "2026-10-28T10:11:02+00:00"
+            "time": "2026-10-28T11:38:05+00:00"
         },
         {
             "name": "dasprid/enum",

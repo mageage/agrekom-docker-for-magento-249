@@ -59,8 +59,8 @@ All agrekom packages have a **`2.x` branch** for Magento 2.4.9. Releases are tag
 | agrekom/send-order-to-google-analytics-module        | bitbucket.org/agrekom/send-order-to-google-analytics-module       | explicit nullable types, declares `jflight/gacookie` |
 | agrekom/video-promotional-campaign-module            | bitbucket.org/agrekom/video-promotional-campaign                  | removed duplicate `Agrekom::top_level` admin menu |
 | e-warsztat/core-module                               | bitbucket.org/e-warsztat/core-module                              | – |
-| creativestyle/theme-agrekom                          | github.com/jarekherisz/agrekom_frontend                           | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock` |
-| creativestyle/theme-ewarsztat                        | github.com/jarekherisz/ewarsztat_frontend                         | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock` |
+| creativestyle/theme-agrekom                          | github.com/jarekherisz/agrekom_frontend                           | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock`; v2.0.1: customer login template |
+| creativestyle/theme-ewarsztat                        | github.com/jarekherisz/ewarsztat_frontend                         | 2.4.9 `root.phtml`, parent `^19.13`, Node 16 `yarn.lock`; v2.0.1: customer login template |
 
 "–" means `v2.0.0` is the same commit as the last 1.x tag (the code already worked on 2.4.9).
 
@@ -142,6 +142,9 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
 - **Creativeshop 19, not 22.** The child themes compile the parent's TypeScript. Creativeshop 22's
   `tsconfig.json` (`target: ES2022`) cannot be parsed by their old `ts-loader`. Moving to Creativeshop 22
   means porting both child themes to `magesuite-frontend-builder` 5 – a separate project.
+- **`login.phtml`.** Creativeshop 19's customer login template reads `login_button_view_model`; 2.4.9 passes
+  `button_lock_manager` instead. Both child themes ship `src/Magento_Customer/templates/form/login.phtml`
+  (Creativeshop's template with only that change).
 - **`root.phtml`.** Magento 2.4.8+ renders CSS/JS through `$headCritical` and `$headAssets`. Creativeshop 19's
   `root.phtml` (aligned with 2.4.6) does not print them, so pages had no CSS and no RequireJS.
   Both child themes now ship `src/Magento_Theme/templates/root.phtml` aligned with 2.4.9.
@@ -156,6 +159,7 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
 | `Implicitly marking parameter … as nullable is deprecated` (PHP 8.4+) – fatal in developer mode | 33 parameters in 5 agrekom modules | `?Type $x = null` (php-cs-fixer `nullable_type_declaration_for_default_null_value`) |
 | `Class "Jflight\GACookie\GACookie" does not exist` during `setup:di:compile` | send-order-to-google-analytics-module | require `jflight/gacookie` |
 | Storefront without CSS/JS | Creativeshop 19 `root.phtml` | 2.4.9 `root.phtml` in child themes |
+| Customer login page: `Call to a member function disabled() on null` | Creativeshop 19 `Magento_Customer/templates/form/login.phtml` (`login_button_view_model`, removed in 2.4.9) | child themes override it using `button_lock_manager` (theme v2.0.1) |
 | `Script error for "jquery-ui-modules/core"` | olegnax-quick-view-module | jQuery UI 1.13 has no core module – dependency removed |
 | Admin: `Duplicate key-sequence ['Agrekom::top_level']` in `menu.xml` | product-configurator + video-promotional-campaign | top-level menu declared once (product-configurator) |
 | `ccSeparator` / `ccParagraph` not found in the browser | stale browser cache of `requirejs-config.js` | static version is bumped after theme builds (`deployed_version.txt`) |
@@ -191,13 +195,11 @@ cp .env.example .env                  # SSH_KEY must reach bitbucket.org/agrekom
 ```
 
 Needs on the host: Docker Desktop, nvm (Node 16 is installed by the script), SSH access to the
-Bitbucket and GitHub repositories above.
+Bitbucket and GitHub repositories above, and a `~/.gitconfig` with `user.name` / `user.email` – it is mounted
+into the php container (`GITCONFIG` in `.env`) so commits made there carry your identity.
 
 ## Open items
 
-- Customer login page (`/customer/account/login/`) returns 500: Creativeshop 19's `Magento_Customer/templates/form/login.phtml`
-  reads `login_button_view_model`, which Magento 2.4.9 replaced with `button_lock_manager`. Fix: override the template
-  in theme-agrekom / theme-ewarsztat (next `v2.0.x`).
 - Migrate the remaining third-party extensions (list under composer.json) or decide to drop them.
 - Theme modernisation: port theme-agrekom / theme-ewarsztat to Creativeshop 22 + `magesuite-frontend-builder` 5,
   then upgrade MageSuite to 16.
