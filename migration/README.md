@@ -42,7 +42,7 @@ All agrekom packages have a **`2.x` branch** for Magento 2.4.9. Releases are tag
 | agrekom/alior-bank-raty-module                       | bitbucket.org/agrekom/alior-bank-raty-module                      | explicit nullable types |
 | agrekom/category-module                              | bitbucket.org/agrekom/category-module                             | – |
 | agrekom/contact-module                               | bitbucket.org/agrekom/contact-module                              | – |
-| agrekom/core-module                                  | bitbucket.org/agrekom/core-module                                 | explicit nullable types |
+| agrekom/core-module                                  | bitbucket.org/agrekom/core-module                                 | explicit nullable types; v2.0.1: no duplicate address on first order |
 | agrekom/customer-module                              | bitbucket.org/agrekom/customer-module                             | – |
 | agrekom/customization-email-template                 | bitbucket.org/agrekom/customization-email-template                | – |
 | agrekom/customization-magesuite-lowest-price-logger-frontend | bitbucket.org/agrekom/customization-magesuite-lowest-price-logger-frontend | – |
