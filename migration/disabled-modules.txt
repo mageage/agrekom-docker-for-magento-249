@@ -28,3 +28,12 @@ PayPal_BraintreeGiftCardAccount
 PayPal_BraintreeGiftWrapping
 PayPal_BraintreeReward
 PayPal_Braintree
+
+# Adobe Payment Services (bundled with 2.4.9, not configured). Its LESS needs Magento blank theme variables
+# that Creativeshop removes, which breaks the compilation of css/styles-m.css.
+Magento_ServiceProxy
+Magento_PaymentServicesPaypalGraphQl
+Magento_PaymentServicesDashboard
+Magento_PaymentServicesSaaSExport
+Magento_PaymentServicesPaypal
+Magento_PaymentServicesBase

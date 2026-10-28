@@ -123,6 +123,7 @@ installed. `install.sh` and `setup-agrekom.sh` run it before `setup:upgrade`.
 | `Vertex_AddressValidation` | not bundled with 2.4.9 any more – kept on the list for other versions |
 | `MageSuite_Gdpr` | not used |
 | `PayPal_Braintree`, `PayPal_BraintreeGraphQl` + `CustomerBalance`, `GiftCard`, `GiftCardAccount`, `GiftWrapping`, `Reward` | no Braintree credentials; the add-ons depend on `PayPal_Braintree` |
+| `Magento_PaymentServices*` (Base, Paypal, PaypalGraphQl, Dashboard, SaaSExport) + `Magento_ServiceProxy` | Adobe Payment Services, bundled with 2.4.9 and not configured; its LESS needs Magento blank theme variables that Creativeshop removes and broke `css/styles-m.css` |
 
 Expected log noise: every `cache:flush` logs `No cache server(s) could be purged` – `MageSuite_Cache` purges its
 search-suggest cache on Varnish even when the built-in full page cache is used.
@@ -175,6 +176,10 @@ Scanned and clean on PHP 8.5: all `creativestyle/*` (MageSuite 13), `smile/elast
   (72 triggers, 1 view, 2 procedures) – the import takes ~20 s for the 193 MB dump;
 - rewrites base URLs to `*.localhost:8080`, disables HTTPS-only settings, the cookie domain and the custom admin URL;
 - sends all mail to Mailpit and disables Mageplaza SMTP;
+- turns off all tracking (Google Analytics / GA4 / GTM, Google Ads conversions, the order-to-GA module,
+  Meta Pixel and the gtag/pixel scripts in *HTML Head → Scripts*), so local orders never reach the real accounts.
+  theme-agrekom also hard-codes the Google Ads tag `AW-670082924` in
+  `src/Magento_Theme/templates/head/additional_tags.phtml` – it is not controlled by configuration (open item);
 - switches the full page cache from Varnish to the built-in cache.
 
 `setup-agrekom.sh` then runs `setup:upgrade` (2.4.6 → 2.4.9 schema) and creates the admin user
@@ -198,8 +203,27 @@ Needs on the host: Docker Desktop, nvm (Node 16 is installed by the script), SSH
 Bitbucket and GitHub repositories above, and a `~/.gitconfig` with `user.name` / `user.email` – it is mounted
 into the php container (`GITCONFIG` in `.env`) so commits made there carry your identity.
 
+## Test customers and checkout test (2026-10-28)
+
+`scripts/create-test-customers.php` creates `test.<website>@example.test` (pl, de, uk, ewarsztat) with password
+`Test1234!` and a default address (customer accounts are per website). Run:
+`docker compose exec -T php php < scripts/create-test-customers.php`.
+
+Tested on all four stores: login, account pages (dashboard, addresses, account edit, orders, newsletter, reviews,
+wishlist), checkout as customer and as guest (bank transfer / cash on delivery; courier, free shipping, pickup),
+order confirmation and welcome e-mails in Mailpit (store language and sender), orders in the admin.
+
+Notes: the DE website only offers free shipping above 150 EUR (production config), so smaller DE carts cannot be
+shipped; the UK store sends a copy of order e-mails to hello@agrekom.co.uk (caught by Mailpit locally).
+
 ## Open items
 
+- Themes `v2.0.2` (pending): Creativeshop ships empty `_module.less` files (Magento_Bundle, Magento_PurchaseOrder,
+  Magento_NegotiableQuote); Magento 2.4.8+ refuses empty LESS sources and `css/styles-l.css` returned 404.
+  The child themes override them with comment-only files (uncommitted in the theme repos).
+- theme-agrekom: make the hard-coded Google Ads tag configurable (e.g. only when `google/adwords/active`).
+- Intermittent `Error during Content Constructor component rendering: Call to a member function toHtml() on null`
+  in `system.log` – seen 8× during testing, not reproducible on request; pages render.
 - Migrate the remaining third-party extensions (list under composer.json) or decide to drop them.
 - Theme modernisation: port theme-agrekom / theme-ewarsztat to Creativeshop 22 + `magesuite-frontend-builder` 5,
   then upgrade MageSuite to 16.

@@ -92,6 +92,12 @@ Disabled modules: edit [`migration/disabled-modules.txt`](migration/disabled-mod
 ./scripts/disable-modules.sh && docker compose exec php bin/magento setup:upgrade
 ```
 
+Test customers (one per website, `test.<website>@example.test` / `Test1234!`):
+
+```bash
+docker compose exec -T php php < scripts/create-test-customers.php
+```
+
 Rebuild the themes after changing theme sources:
 
 ```bash

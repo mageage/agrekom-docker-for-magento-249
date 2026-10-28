@@ -42,6 +42,14 @@ INSERT INTO core_config_data (scope, scope_id, path, value) VALUES
   ('default', 0, 'system/smtp/port', '1025');
 UPDATE core_config_data SET value = '0' WHERE path = 'smtp/general/enabled';
 
+-- no tracking from the local copy: test orders and page views must not reach the real GA / Google Ads / Meta accounts
+UPDATE core_config_data SET value = '0'
+WHERE path IN ('google/analytics/active', 'google/adwords/active', 'google/send_order_to_google_analytics/active', 'facebook/catalog_management/catalog_sync')
+   OR (path LIKE 'googletagmanager/%' AND path LIKE '%/active');
+UPDATE core_config_data SET value = '<!-- tracking scripts removed in local environment -->'
+WHERE path = 'design/head/includes' AND (value LIKE '%gtag%' OR value LIKE '%fbq%' OR value LIKE '%googletagmanager.com%');
+DELETE FROM core_config_data WHERE path LIKE 'apptrian_facebookpixel/%';
+
 -- built-in full page cache instead of production Varnish
 DELETE FROM core_config_data WHERE path = 'system/full_page_cache/caching_application';
 INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'system/full_page_cache/caching_application', '1');
