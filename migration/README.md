@@ -102,10 +102,7 @@ Changes against the 2.4.6 project (`Sites/agrekom/composer.json`):
   laminas mail stack; 2.4.9 sends mail through Symfony Mailer and v4.1.1 supports it.
 - `jflight/gacookie` `dev-master`, `minimum-stability: dev` + `prefer-stable: true`.
 - `snowdog/language-pl_pl`, `splendidinternet/mage2-locale-de-de` as before.
-- Not migrated yet (in 2.4.6 `composer.json`, not in 2.4.9): `amasty/module-google-rich-snippets`,
-  `experius/module-wysiwygdownloads`, `facebook/facebook-for-magento2`, `magepal/magento2-google-analytics4`,
-  `mageplaza/module-core`, `mageplaza/module-smtp`, `plumrocket/module-cookie-consent`,
-  `stripe/stripe-payments`, `symfony/var-dumper`.
+- Not migrated yet – see [Missing extensions](#missing-extensions).
 - No longer pinned (installed through MageSuite in its current 1.x version): `creativestyle/magesuite-google-api`
   (was `1.2.10`), `creativestyle/magesuite-product-positive-indicators` (was `<3.3.4`).
 
@@ -127,6 +124,37 @@ installed. `install.sh` and `setup-agrekom.sh` run it before `setup:upgrade`.
 
 Expected log noise: every `cache:flush` logs `No cache server(s) could be purged` – `MageSuite_Cache` purges its
 search-suggest cache on Varnish even when the built-in full page cache is used.
+
+## Missing extensions
+
+Packages required by the 2.4.6 project (`Sites/agrekom/composer.json`) that are not in 2.4.9, with the modules
+production has enabled from them (checked 2026-10-28):
+
+| Package (prod version) | Modules | Source | Note |
+|------------------------|---------|--------|------|
+| `facebook/facebook-for-magento2` (1.4.6) | Facebook_BusinessExtension | Packagist | last release 1.4.6 (2023-01) – unmaintained; product attributes `google_product_category`, `facebook_*` |
+| `stripe/stripe-payments` (4.7.0 → `stripe/module-payments` 4.7.1, `stripe/module-tax` 1.2.5) | StripeIntegration_Payments, StripeIntegration_Tax | Stripe / Marketplace, not Packagist | production config has Stripe active |
+| `mageplaza/module-smtp` (4.7.25), `mageplaza/module-core` (pinned 1.5.15) | Mageplaza_Smtp, Mageplaza_Core | Packagist (4.7.27 / 1.6.1 available) | production mail transport |
+| `magepal/magento2-google-analytics4` (1.7.13) | MagePal_Core, MagePal_GoogleAnalytics4, MagePal_GoogleTagManager | composer.magepal.com | GA4 / GTM on PL, DE, UK |
+| `amasty/module-google-rich-snippets` (1.10.1) | Amasty_Base, Amasty_SeoRichData | composer.amasty.com | product attribute `am_offer_item_condition` |
+| `plumrocket/module-cookie-consent` (1.6.1) + `module-extended-admin-ui`, `module-geo-ip-lookup` | Plumrocket_Base, _CookieConsent, _ExtendedAdminUi, _GeoIPLookup | plumrocket.com/repo | cookie banner; entity `pr_cookie` |
+| `experius/module-wysiwygdownloads` (1.3.0) | Experius_WysiwygDownloads | Packagist (1.3.0, PHP ^8) | file downloads in the WYSIWYG editor |
+
+Gone with Magento 2.4.9 itself: `Magento_Elasticsearch7` (replaced by OpenSearch / ElasticSuite),
+`Magento_GoogleShoppingAds`, `Temando_ShippingRemover`.
+
+Found during the check: `agrekom/customization-email-template` only contains `etc/module.xml`, and that file declares
+`MageSuite_LowestPriceLoggerFrontend` instead of `Agrekom_CustomizationEmailTemplate` (copy-paste; same in production).
+The package has no code, so nothing is lost – fix the name or drop the package.
+
+### Attributes of missing extensions
+
+Their EAV attributes stay in the database and point to classes that no longer exist, which broke the admin product
+edit page (`Class "Facebook\BusinessExtension\Model\Config\Source\Product\GoogleProductCategory" does not exist`).
+`scripts/fix-missing-attribute-models.php` (run by `setup-agrekom.sh`) clears every missing source/backend/frontend
+model; product dropdowns become text fields so their values survive a product save. It prints restore SQL
+(`backups/attribute-models-restore.sql`) for when an extension is installed again. Affected now: 6 Facebook and
+1 Amasty product attributes, 2 Plumrocket `pr_cookie` attributes.
 
 ## Themes
 

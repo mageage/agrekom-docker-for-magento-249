@@ -21,6 +21,9 @@ echo "== themes"
 echo "== Magento"
 ./scripts/disable-modules.sh   # migration/disabled-modules.txt
 m setup:upgrade
+# Attributes of extensions that are not installed (Facebook, Amasty, Plumrocket) break e.g. the admin product page
+mkdir -p backups
+docker compose exec -T php php < scripts/fix-missing-attribute-models.php >> backups/attribute-models-restore.sql
 m config:set --lock-env smile_elasticsuite_core_base_settings/es_client/servers opensearch:9200
 m config:set catalog/search/engine elasticsuite
 m config:set system/full_page_cache/caching_application 1
