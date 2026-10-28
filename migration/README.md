@@ -109,6 +109,24 @@ Changes against the 2.4.6 project (`Sites/agrekom/composer.json`):
 - No longer pinned (installed through MageSuite in its current 1.x version): `creativestyle/magesuite-google-api`
   (was `1.2.10`), `creativestyle/magesuite-product-positive-indicators` (was `<3.3.4`).
 
+## Disabled modules
+
+[`disabled-modules.txt`](disabled-modules.txt) lists modules turned off locally; `scripts/disable-modules.sh`
+applies it in one `module:disable` call (dependent modules must go together) and skips modules that are not
+installed. `install.sh` and `setup-agrekom.sh` run it before `setup:upgrade`.
+
+| Module(s) | Why |
+|-----------|-----|
+| `Magento_TwoFactorAuth`, `Magento_AdminAdobeImsTwoFactorAuth` | local admin login without 2FA |
+| `Magento_WebapiAsync` | async/bulk REST API not used |
+| `Dotdigitalgroup_Chat`, `_Sms`, `_Email` | not bundled with 2.4.9 any more – kept on the list for other versions |
+| `Vertex_AddressValidation` | not bundled with 2.4.9 any more – kept on the list for other versions |
+| `MageSuite_Gdpr` | not used |
+| `PayPal_Braintree`, `PayPal_BraintreeGraphQl` + `CustomerBalance`, `GiftCard`, `GiftCardAccount`, `GiftWrapping`, `Reward` | no Braintree credentials; the add-ons depend on `PayPal_Braintree` |
+
+Expected log noise: every `cache:flush` logs `No cache server(s) could be purged` – `MageSuite_Cache` purges its
+search-suggest cache on Varnish even when the built-in full page cache is used.
+
 ## Themes
 
 MageSuite themes are built with Node, outside Magento (`scripts/build-themes.sh`):
@@ -159,7 +177,7 @@ Scanned and clean on PHP 8.5: all `creativestyle/*` (MageSuite 13), `smile/elast
 `localadmin / Admin123!` (production admin users are kept unchanged).
 
 Production encrypted values (payment keys, SMTP passwords) cannot be decrypted locally – payments
-(Stripe, imoje, Alior, Braintree) are not usable; `Braintree … merchantId needs to be set` in `system.log` is expected.
+(Stripe, imoje, Alior) are not usable locally. Braintree is disabled (see Disabled modules).
 
 ## Setting up (other developers)
 
@@ -177,6 +195,9 @@ Bitbucket and GitHub repositories above.
 
 ## Open items
 
+- Customer login page (`/customer/account/login/`) returns 500: Creativeshop 19's `Magento_Customer/templates/form/login.phtml`
+  reads `login_button_view_model`, which Magento 2.4.9 replaced with `button_lock_manager`. Fix: override the template
+  in theme-agrekom / theme-ewarsztat (next `v2.0.x`).
 - Migrate the remaining third-party extensions (list under composer.json) or decide to drop them.
 - Theme modernisation: port theme-agrekom / theme-ewarsztat to Creativeshop 22 + `magesuite-frontend-builder` 5,
   then upgrade MageSuite to 16.

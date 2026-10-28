@@ -1,0 +1,30 @@
+# Magento modules disabled in the local environment (one per line, # = comment).
+# Applied by scripts/disable-modules.sh, which install.sh and scripts/setup-agrekom.sh run.
+# Modules that are not installed are skipped, so the list can also hold modules from other Magento versions.
+
+# Two-factor auth (local admin login)
+Magento_TwoFactorAuth
+Magento_AdminAdobeImsTwoFactorAuth
+
+# Async/bulk REST API
+Magento_WebapiAsync
+
+# Dotdigital (not bundled with 2.4.9 any more)
+Dotdigitalgroup_Chat
+Dotdigitalgroup_Sms
+Dotdigitalgroup_Email
+
+# Vertex (not bundled with 2.4.9 any more)
+Vertex_AddressValidation
+
+# MageSuite GDPR
+MageSuite_Gdpr
+
+# PayPal Braintree (no merchant credentials locally); the add-ons depend on PayPal_Braintree
+PayPal_BraintreeGraphQl
+PayPal_BraintreeCustomerBalance
+PayPal_BraintreeGiftCard
+PayPal_BraintreeGiftCardAccount
+PayPal_BraintreeGiftWrapping
+PayPal_BraintreeReward
+PayPal_Braintree

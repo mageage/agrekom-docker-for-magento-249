@@ -40,7 +40,8 @@ m setup:install \
   --backend-frontname=admin
 
 m deploy:mode:set developer
-m module:disable Magento_TwoFactorAuth Magento_AdminAdobeImsTwoFactorAuth
+./scripts/disable-modules.sh   # migration/disabled-modules.txt
+m setup:upgrade
 m config:set system/smtp/host mailpit
 m config:set system/smtp/port 1025
 

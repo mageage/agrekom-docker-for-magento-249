@@ -83,6 +83,13 @@ Import the production database (fixes the MariaDB dump, local URLs, mail to Mail
 ./scripts/import-production-db.sh /path/to/agrekom_sklep01.sql
 ```
 
+Disabled modules: edit [`migration/disabled-modules.txt`](migration/disabled-modules.txt) and apply it
+(`install.sh` and `setup-agrekom.sh` do this automatically):
+
+```bash
+./scripts/disable-modules.sh && docker compose exec php bin/magento setup:upgrade
+```
+
 Rebuild the themes after changing theme sources:
 
 ```bash
@@ -116,7 +123,7 @@ auth.json.example      repo.magento.com keys template (auth.json is git-ignored)
 php/                   PHP 8.5 image (Dockerfile, php.ini; mail goes to Mailpit via msmtp)
 nginx/                 vhost + fastcgi_params with website routing
 scripts/               websites, production DB import, theme build, agrekom setup
-migration/             2.4.9 composer.json / composer.lock and the migration README
+migration/             2.4.9 composer.json / composer.lock, disabled-modules.txt, migration README
 install.sh             fresh Magento 2.4.9 install
 src/                   Magento code (git-ignored)
 ```

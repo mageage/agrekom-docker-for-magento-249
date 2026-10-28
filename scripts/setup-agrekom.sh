@@ -19,6 +19,7 @@ echo "== themes"
 ./scripts/build-themes.sh
 
 echo "== Magento"
+./scripts/disable-modules.sh   # migration/disabled-modules.txt
 m setup:upgrade
 m config:set --lock-env smile_elasticsuite_core_base_settings/es_client/servers opensearch:9200
 m config:set catalog/search/engine elasticsuite
