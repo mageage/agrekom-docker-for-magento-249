@@ -17,6 +17,8 @@ services:
       - ${MAGENTO_SRC:-./src}:/var/www/html:cached
       - ./auth.json:/var/www/.composer/auth.json:ro
       - composer-cache:/var/www/.composer/cache
+      # SSH key for git@bitbucket.org / git@github.com - composer clones the agrekom packages
+      - ${SSH_KEY:-~/.ssh/id_rsa}:/var/www/.ssh/id_rsa:ro
     environment:
       COMPOSER_HOME: /var/www/.composer
     depends_on:

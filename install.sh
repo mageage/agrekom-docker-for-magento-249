@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Fresh Magento 2.4.9 install into ./src with PL (default), UK and DE websites
+# Fresh Magento 2.4.9 install into ./src with PL (default), UK and DE websites (production codes: pl, uk, de)
 set -euo pipefail
 cd "$(dirname "$0")"
 

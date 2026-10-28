@@ -10,3 +10,8 @@ auth.json
 .DS_Store
 .idea/
 .vscode/
+
+# Database dumps and local backups
+*.sql
+*.sql.gz
+/backups/

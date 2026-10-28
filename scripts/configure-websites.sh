@@ -12,7 +12,7 @@ m config:set general/locale/weight_unit kgs
 m config:set general/country/default PL
 m config:set general/store_information/name "Agrekom PL"
 
-for site in "uk uk_en GB GBP en_GB Europe/London" "de de_de DE EUR de_DE Europe/Berlin"; do
+for site in "uk en_gb GB GBP en_GB Europe/London" "de de_de DE EUR de_DE Europe/Berlin"; do
   read -r code view country currency locale tz <<<"$site"
   web "$code" web/unsecure/base_url "http://$code.localhost:${HTTP_PORT}/"
   web "$code" web/secure/base_url "http://$code.localhost:${HTTP_PORT}/"
