@@ -50,6 +50,10 @@ UPDATE core_config_data SET value = '<!-- tracking scripts removed in local envi
 WHERE path = 'design/head/includes' AND (value LIKE '%gtag%' OR value LIKE '%fbq%' OR value LIKE '%googletagmanager.com%');
 DELETE FROM core_config_data WHERE path LIKE 'apptrian_facebookpixel/%';
 
+-- no CAPTCHA on customer registration (local test registrations); other forms keep theirs
+UPDATE core_config_data SET value = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', value, ','), ',user_create,', ','))
+WHERE path = 'customer/captcha/forms';
+
 -- built-in full page cache instead of production Varnish
 DELETE FROM core_config_data WHERE path = 'system/full_page_cache/caching_application';
 INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0, 'system/full_page_cache/caching_application', '1');

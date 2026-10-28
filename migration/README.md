@@ -245,12 +245,24 @@ Tested on all four stores: login, account pages (dashboard, addresses, account e
 wishlist), checkout as customer and as guest (bank transfer / cash on delivery; courier, free shipping, pickup),
 order confirmation and welcome e-mails in Mailpit (store language and sender), orders in the admin.
 
+Second run in Chrome (2026-10-28): on every store homepage → category → product page → cart page → checkout as
+guest, then registration through the storefront form (`new.<website>@example.test` / `Test1234!`) and the same
+journey signed in (new address entered at checkout). 8 orders (000002371/2372, 4000000986/987, 5000000367/368,
+7000000025/026), 14 e-mails in Mailpit (4 welcome, 8 order confirmations, 2 UK staff copies), no console errors,
+no new `system.log` / `exception.log` entries. Out-of-stock products correctly show no add-to-cart button.
+
+`import-production-db.sh` removes `user_create` from `customer/captcha/forms` (no CAPTCHA on local registration).
+
 Notes: the DE website only offers free shipping above 150 EUR (production config), so smaller DE carts cannot be
 shipped; the UK store sends a copy of order e-mails to hello@agrekom.co.uk (caught by Mailpit locally).
 
 ## Open items
 
 - theme-agrekom: make the hard-coded Google Ads tag configurable (e.g. only when `google/adwords/active`).
+- Homepage / CMS content links to `https://www.agrekom.pl/...` with absolute URLs – clicking a banner on the local
+  copy opens the live shop. Consider rewriting the domains in CMS content on import.
+- A new customer's first order saves the identical shipping and billing address twice (default shipping + default
+  billing). Production 2.4.6 data shows the same pairs, so it is existing behaviour, not a 2.4.9 regression.
 - Intermittent `Error during Content Constructor component rendering: Call to a member function toHtml() on null`
   in `system.log` – seen 8× during testing, not reproducible on request; pages render.
 - Migrate the remaining third-party extensions (list under composer.json) or decide to drop them.
