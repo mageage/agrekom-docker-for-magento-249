@@ -61,4 +61,7 @@ INSERT INTO core_config_data (scope, scope_id, path, value) VALUES ('default', 0
 SELECT scope, scope_id, value AS base_url FROM core_config_data WHERE path = 'web/unsecure/base_url' ORDER BY scope_id;
 SQL
 
+echo "Rewriting production URLs in content..."
+./scripts/rewrite-production-urls.sh "$DB"
+
 echo "Done. Next: ./scripts/setup-agrekom.sh (or bin/magento setup:upgrade if the agrekom code is already installed)."

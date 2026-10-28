@@ -194,6 +194,7 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
 | `css/styles-m.css` 404: `variable @checkout-shipping-address__max-width is undefined` | Magento_PaymentServicesPaypal LESS (bundled with 2.4.9) | Payment Services modules disabled (`disabled-modules.txt`) |
 | Customer login page: `Call to a member function disabled() on null` | Creativeshop 19 `Magento_Customer/templates/form/login.phtml` (`login_button_view_model`, removed in 2.4.9) | child themes override it using `button_lock_manager` (theme v2.0.1) |
 | `Script error for "jquery-ui-modules/core"` | olegnax-quick-view-module | jQuery UI 1.13 has no core module – dependency removed |
+| New customer's first order saves the same address twice (default shipping + default billing) – also in production 2.4.6 | Magento core: `shipping.js` sets `save_in_address_book = 1` (snake_case) on the new shipping address; `select-billing-address.js` clears only `saveInAddressBook` on the same-as-shipping billing copy, so billing is saved again | `agrekom/core-module`: mixin `Agrekom_Core/js/action/select-billing-address-mixin` clears the snake_case flag too – one address, default billing + shipping |
 | Admin: `Duplicate key-sequence ['Agrekom::top_level']` in `menu.xml` | product-configurator + video-promotional-campaign | top-level menu declared once (product-configurator) |
 | `ccSeparator` / `ccParagraph` not found in the browser | stale browser cache of `requirejs-config.js` | static version is bumped after theme builds (`deployed_version.txt`) |
 | ElasticSuite connects to `localhost:9200` | env.php | `smile_elasticsuite_core_base_settings/es_client/servers = opensearch:9200` |
@@ -212,7 +213,11 @@ Scanned and clean on PHP 8.5: all `creativestyle/*` (MageSuite 13), `smile/elast
   Meta Pixel and the gtag/pixel scripts in *HTML Head → Scripts*), so local orders never reach the real accounts.
   theme-agrekom also hard-codes the Google Ads tag `AW-670082924` in
   `src/Magento_Theme/templates/head/additional_tags.phtml` – it is not controlled by configuration (open item);
-- switches the full page cache from Varnish to the built-in cache.
+- switches the full page cache from Varnish to the built-in cache;
+- rewrites production shop URLs in content to the local hosts (`scripts/rewrite-production-urls.sh`): CMS pages and
+  blocks incl. Content Constructor JSON (escaped `https:\/\/` and scheme-less `"href":"www.agrekom.pl"`), product and
+  category texts, checkout terms, brands, config. Links and images on the local copy never lead to the live shops
+  (media files are local). Logs are not touched.
 
 `setup-agrekom.sh` then runs `setup:upgrade` (2.4.6 → 2.4.9 schema) and creates the admin user
 `localadmin / Admin123!` (production admin users are kept unchanged).
@@ -259,10 +264,6 @@ shipped; the UK store sends a copy of order e-mails to hello@agrekom.co.uk (caug
 ## Open items
 
 - theme-agrekom: make the hard-coded Google Ads tag configurable (e.g. only when `google/adwords/active`).
-- Homepage / CMS content links to `https://www.agrekom.pl/...` with absolute URLs – clicking a banner on the local
-  copy opens the live shop. Consider rewriting the domains in CMS content on import.
-- A new customer's first order saves the identical shipping and billing address twice (default shipping + default
-  billing). Production 2.4.6 data shows the same pairs, so it is existing behaviour, not a 2.4.9 regression.
 - Intermittent `Error during Content Constructor component rendering: Call to a member function toHtml() on null`
   in `system.log` – seen 8× during testing, not reproducible on request; pages render.
 - Migrate the remaining third-party extensions (list under composer.json) or decide to drop them.
