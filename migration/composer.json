@@ -8,6 +8,7 @@
     ],
     "config": {
         "allow-plugins": {
+            "cweagans/composer-patches": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "laminas/laminas-dependency-plugin": true,
             "magento/*": true,
@@ -48,6 +49,7 @@
         "creativestyle/theme-agrekom": "^2.0",
         "creativestyle/theme-creativeshop": "^19.13",
         "creativestyle/theme-ewarsztat": "^2.0",
+        "cweagans/composer-patches": "^2.0",
         "e-warsztat/core-module": "^2.0",
         "jflight/gacookie": "dev-master",
         "magento/composer": "^1.10.1-beta1",
@@ -206,6 +208,15 @@
         }
     },
     "extra": {
-        "magento-force": "override"
+        "magento-force": "override",
+        "composer-patches": {
+            "disable-resolvers": [
+                "\\cweagans\\Composer\\Resolver\\Dependencies"
+            ]
+        }
+    },
+    "scripts": {
+        "post-install-cmd": "sh patches/apply-root-patches.sh",
+        "post-update-cmd": "@post-install-cmd"
     }
 }

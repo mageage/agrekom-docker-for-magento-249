@@ -10,10 +10,20 @@ m() { docker compose exec -T php bin/magento "$@"; }
 [ -f "$SRC/app/etc/env.php" ] || { echo "No Magento install in $SRC - run ./install.sh first." >&2; exit 1; }
 
 echo "== composer: agrekom 2.x packages (git clones in vendor/)"
-cp migration/composer.json migration/composer.lock "$SRC/"
+cp migration/composer.json migration/composer.lock migration/patches.json migration/patches.lock.json "$SRC/"
+rm -rf "$SRC/patches" && cp -R migration/patches "$SRC/"
 docker compose up -d --build php
 docker compose exec -T -u root php chown -R www-data:www-data /var/www/.composer/cache
 docker compose exec -T php composer install --no-interaction
+
+# cweagans/composer-patches only patches packages when it installs them. If the patch set changed since the
+# last run, reinstall the patched packages so the new patches are applied.
+applied="$SRC/vendor/composer/agrekom-patches.lock.json"
+if ! cmp -s migration/patches.lock.json "$applied"; then
+  echo "== composer: (re)applying Adobe security patches"
+  docker compose exec -T php composer patches-repatch --no-interaction
+  cp migration/patches.lock.json "$applied"
+fi
 
 echo "== themes"
 ./scripts/build-themes.sh

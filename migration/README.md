@@ -116,6 +116,20 @@ Changes against the 2.4.6 project (`Sites/agrekom/composer.json`):
 - No longer pinned (installed through MageSuite in its current 1.x version): `creativestyle/magesuite-google-api`
   (was `1.2.10`), `creativestyle/magesuite-product-positive-indicators` (was `<3.3.4`).
 
+## Adobe security patches
+
+Same patch set as the deploy repo (github.com/jarekherisz/agrekom, branch `agrekom_249`, `magento/before_build/`):
+APSB26-73, -92, -138, -146, -153 for Magento Open Source 2.4.9.
+
+- `cweagans/composer-patches` ^2.0 applies [`patches.json`](patches.json) (patch files in [`patches/`](patches/),
+  locked in [`patches.lock.json`](patches.lock.json)) to 23 `magento/*` packages when Composer installs them.
+- `patches/apply-root-patches.sh` (Composer `post-install-cmd` / `post-update-cmd`) applies `patches/root/*.patch`
+  to files outside `vendor/` (`nginx.conf.sample`, `lib/web/underscore.js`, …); already applied patches are skipped.
+- `scripts/setup-agrekom.sh` copies all of it into `src/` and runs `composer patches-repatch` when
+  `patches.lock.json` changed since the last run.
+- Keep this patch set identical to the deploy repo – copy `patches/`, `patches.json` and `patches.lock.json` from
+  there, never edit them here only.
+
 ## Disabled modules
 
 [`disabled-modules.txt`](disabled-modules.txt) lists modules turned off locally; `scripts/disable-modules.sh`
