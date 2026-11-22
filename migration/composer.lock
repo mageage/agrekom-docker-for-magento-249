@@ -195,11 +195,11 @@
         },
         {
             "name": "agrekom/core-module",
-            "version": "v2.0.1",
+            "version": "v2.0.2",
             "source": {
                 "type": "git",
                 "url": "git@bitbucket.org:agrekom/core-module.git",
-                "reference": "64f60e774a04c978980908397b870dc4dc403b1c"
+                "reference": "cc7aa754731b5100fc07b8cf78805b8595ded1df"
             },
             "require": {
                 "magento/framework": "*"
@@ -218,7 +218,7 @@
                 "AFL-3.0"
             ],
             "description": "Agrekom Core Module",
-            "time": "2026-10-28T14:31:58+00:00"
+            "time": "2026-11-22T10:59:12+00:00"
         },
         {
             "name": "agrekom/customer-module",

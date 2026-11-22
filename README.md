@@ -6,6 +6,8 @@ PL (default), DE, UK and – with the production database – ewarsztat.
 **Migration from 2.4.6: see [migration/README.md](migration/README.md)** – what changed, the `2.x` branches /
 `v2.x.x` tags of our packages, themes, fixed issues and open items.
 
+**Rules for commits, MRs and package releases: see [PROJECT_RULES.md](PROJECT_RULES.md).**
+
 | Service    | Image                                       | Host access                              |
 |------------|---------------------------------------------|------------------------------------------|
 | nginx      | nginx:1.28                                  | http://localhost:8080                    |

@@ -42,7 +42,7 @@ All agrekom packages have a **`2.x` branch** for Magento 2.4.9. Releases are tag
 | agrekom/alior-bank-raty-module                       | bitbucket.org/agrekom/alior-bank-raty-module                      | explicit nullable types |
 | agrekom/category-module                              | bitbucket.org/agrekom/category-module                             | – |
 | agrekom/contact-module                               | bitbucket.org/agrekom/contact-module                              | – |
-| agrekom/core-module                                  | bitbucket.org/agrekom/core-module                                 | explicit nullable types; v2.0.1: no duplicate address on first order |
+| agrekom/core-module                                  | bitbucket.org/agrekom/core-module                                 | explicit nullable types; v2.0.1: no duplicate address on first order; v2.0.2: static deploy accepts empty asset source files |
 | agrekom/customer-module                              | bitbucket.org/agrekom/customer-module                             | – |
 | agrekom/customization-email-template                 | bitbucket.org/agrekom/customization-email-template                | – |
 | agrekom/customization-magesuite-lowest-price-logger-frontend | bitbucket.org/agrekom/customization-magesuite-lowest-price-logger-frontend | – |
@@ -76,9 +76,19 @@ git checkout -b feature/my-change          # or commit on 2.x directly
 # ... change, test, commit, push, merge into 2.x ...
 git tag -a v2.0.1 -m "v2.0.1" && git push origin 2.x v2.0.1
 cd ../../.. && docker compose exec php composer update agrekom/core-module
+cp src/composer.lock migration/composer.lock   # only if src/ was set up from migration/ – otherwise see below
+git add migration/composer.lock migration/README.md
+git commit -m "agrekom/core-module v2.0.x: <what changed>" && git push
 ```
 
+After every new package tag, **commit the updated `migration/composer.lock` to this repo** (and note the change
+in the package table above). If `src/composer.lock` has drifted from `migration/`, update the lock file alone:
+copy `migration/composer.json` + `composer.lock` (+ `src/auth.json`) to `src/var/lockupd/`, run
+`docker compose exec -T -w /var/www/html/var/lockupd php composer update <package> --no-install --no-scripts`,
+check that the diff touches only that package, copy the lock back and delete `src/var/lockupd/`.
+
 Rules:
+- See [PROJECT_RULES.md](../PROJECT_RULES.md) – no AI attribution lines in commits or MR descriptions.
 - New releases for 2.4.9 are `v2.x.x` tags on the `2.x` branch. Do not tag `v1.x.x` from `2.x`.
 - Fixes needed by the 2.4.6 production shop go to the old default branch (`master` / `main`) as `v1.x.x`
   and are merged forward into `2.x`.
@@ -176,6 +186,9 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
   (Creativeshop's template with only that change).
 - **Empty `_module.less`.** Creativeshop switches off Magento_Bundle, Magento_PurchaseOrder and Magento_NegotiableQuote
   styles with empty files; 2.4.8+ refuses empty LESS sources. Both child themes ship comment-only replacements.
+  The parent theme itself (deployed on its own by `setup:static-content:deploy`) is covered by
+  `agrekom/core-module` v2.0.2: plugin `Agrekom\Core\Plugin\Magento\Framework\View\Asset\File\AllowEmptySourceFile`
+  returns `''` for empty asset source files. Do not edit `theme-creativeshop` – we have no access to its repository.
 - **`root.phtml`.** Magento 2.4.8+ renders CSS/JS through `$headCritical` and `$headAssets`. Creativeshop 19's
   `root.phtml` (aligned with 2.4.6) does not print them, so pages had no CSS and no RequireJS.
   Both child themes now ship `src/Magento_Theme/templates/root.phtml` aligned with 2.4.9.
@@ -190,7 +203,7 @@ Each build writes into `app/design/frontend/creativestyle/<theme>`.
 | `Implicitly marking parameter … as nullable is deprecated` (PHP 8.4+) – fatal in developer mode | 33 parameters in 5 agrekom modules | `?Type $x = null` (php-cs-fixer `nullable_type_declaration_for_default_null_value`) |
 | `Class "Jflight\GACookie\GACookie" does not exist` during `setup:di:compile` | send-order-to-google-analytics-module | require `jflight/gacookie` |
 | Storefront without CSS/JS | Creativeshop 19 `root.phtml` | 2.4.9 `root.phtml` in child themes |
-| `css/styles-l.css` 404: `Unable to get content for '…/Magento_Bundle/css/source/_module.less' after 3 attempts` | Creativeshop 19 empty `_module.less` (Bundle, PurchaseOrder, NegotiableQuote); 2.4.8+ refuses empty sources | comment-only overrides in the child themes (theme v2.0.2) |
+| `css/styles-l.css` 404: `Unable to get content for '…/Magento_Bundle/css/source/_module.less' after 3 attempts` | Creativeshop 19 empty `_module.less` (Bundle, PurchaseOrder, NegotiableQuote); 2.4.8+ refuses empty sources | comment-only overrides in the child themes (theme v2.0.2); for the parent theme's own deploy, `agrekom/core-module` v2.0.2 plugin accepts empty asset sources |
 | `css/styles-m.css` 404: `variable @checkout-shipping-address__max-width is undefined` | Magento_PaymentServicesPaypal LESS (bundled with 2.4.9) | Payment Services modules disabled (`disabled-modules.txt`) |
 | Customer login page: `Call to a member function disabled() on null` | Creativeshop 19 `Magento_Customer/templates/form/login.phtml` (`login_button_view_model`, removed in 2.4.9) | child themes override it using `button_lock_manager` (theme v2.0.1) |
 | `Script error for "jquery-ui-modules/core"` | olegnax-quick-view-module | jQuery UI 1.13 has no core module – dependency removed |
