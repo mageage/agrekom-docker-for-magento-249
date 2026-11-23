@@ -30,6 +30,26 @@ services:
       rabbitmq: { condition: service_healthy }
       mailpit: { condition: service_started }
 
+  # Deployer from the DevOps repo (submodule ./agrekom) with the container PHP 8.5 and Node 16 - not started by `up`.
+  # Run it with ./scripts/deployer.sh <task> [host], e.g. ./scripts/deployer.sh build test
+  deployer:
+    container_name: Agrekom_249-deployer
+    build: ./deployer
+    # amd64 like the server: theme image tools (gifsicle, optipng) ship x86-64 Linux binaries only
+    platform: linux/amd64
+    profiles: [tools]
+    working_dir: /project
+    volumes:
+      # DevOps repo: deploy.php, recipe/, magento/before_build/; the build goes to agrekom/temp/build/
+      - ./agrekom:/project:cached
+      # Local Magento, used as path_build by ./scripts/build-themes.sh
+      - ${MAGENTO_SRC:-./src}:/var/www/html:cached
+      - composer-cache:/var/www/.composer/cache
+      # SSH: package repositories and the deploy servers (web01.agrekom.pl)
+      - ${SSH_KEY:-~/.ssh/id_rsa}:/var/www/.ssh/id_rsa:ro
+      - ${SSH_KNOWN_HOSTS:-~/.ssh/known_hosts}:/var/www/.ssh/known_hosts_host:ro
+      - ${GITCONFIG:-~/.gitconfig}:/var/www/.gitconfig:ro
+
   db:
     container_name: Agrekom_249-db
     image: mysql:8.4

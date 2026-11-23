@@ -40,7 +40,7 @@ m setup:install \
   --backend-frontname=admin
 
 m deploy:mode:set developer
-./scripts/disable-modules.sh   # migration/disabled-modules.txt
+./scripts/disable-modules.sh   # agrekom/dev/disabled-modules.txt
 m setup:upgrade
 m config:set system/smtp/host mailpit
 m config:set system/smtp/port 1025

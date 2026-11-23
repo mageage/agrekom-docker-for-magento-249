@@ -4,7 +4,13 @@ Migration of the agrekom shop (agrekom.pl, agrekom.de, agrekom.co.uk, ewarsztat.
 **Magento 2.4.6-p14 / PHP 8.2** to **Magento Open Source 2.4.9 / PHP 8.5**.
 
 Status (2026-10-28): the four storefronts and the admin run locally on 2.4.9 with the production
-database, without PHP or browser console errors. Not deployed anywhere yet.
+database, without PHP or browser console errors.
+
+**Two repositories.** This repo (github.com/mageage/agrekom-docker-for-magento-249) is our local environment, scripts
+and documentation. The DevOps repo (github.com/jarekherisz/agrekom, branch `agrekom_249`) is the submodule
+[`agrekom/`](../agrekom): Deployer (`deploy.php`, `recipe/`) and the files shared with the production build in
+`agrekom/magento/before_build/` – `composer.json`, `composer.lock`, Adobe patches, `disabled-modules.txt` for the server.
+Our scripts read them from there; there is no copy in this repo. See [PROJECT_RULES.md](../PROJECT_RULES.md).
 
 ## Platform
 
@@ -74,21 +80,17 @@ All agrekom packages have a **`2.x` branch** for Magento 2.4.9. Releases are tag
 cd src/vendor/agrekom/core-module          # git clone, branch 2.x
 git checkout -b feature/my-change          # or commit on 2.x directly
 # ... change, test, commit, push, merge into 2.x ...
-git tag -a v2.0.1 -m "v2.0.1" && git push origin 2.x v2.0.1
-cd ../../.. && docker compose exec php composer update agrekom/core-module
-cp src/composer.lock migration/composer.lock   # only if src/ was set up from migration/ – otherwise see below
-git add migration/composer.lock migration/README.md
-git commit -m "agrekom/core-module v2.0.x: <what changed>" && git push
+git tag -a v2.0.3 -m "v2.0.3" && git push origin 2.x v2.0.3
 ```
 
-After every new package tag, **commit the updated `migration/composer.lock` to this repo** (and note the change
-in the package table above). If `src/composer.lock` has drifted from `migration/`, update the lock file alone:
-copy `migration/composer.json` + `composer.lock` (+ `src/auth.json`) to `src/var/lockupd/`, run
-`docker compose exec -T -w /var/www/html/var/lockupd php composer update <package> --no-install --no-scripts`,
-check that the diff touches only that package, copy the lock back and delete `src/var/lockupd/`.
+The new tag reaches the shop only through `agrekom/magento/before_build/composer.lock`, which belongs to the DevOps
+repo. Prepare the lock change in the submodule working tree, **do not commit it there** – hand it to DevOps
+(diff or branch, see [PROJECT_RULES.md](../PROJECT_RULES.md)). Their `composer.json` has no `vcs` repositories for our
+packages, so update the lock in a temporary copy with the repositories added, check that the diff touches only that
+package, and copy only `composer.lock` back. When DevOps has merged it, move the submodule pointer here
+(`git submodule update --remote agrekom`, commit `agrekom`).
 
-Rules:
-- See [PROJECT_RULES.md](../PROJECT_RULES.md) – no AI attribution lines in commits or MR descriptions.
+Rules (see also [PROJECT_RULES.md](../PROJECT_RULES.md)):
 - New releases for 2.4.9 are `v2.x.x` tags on the `2.x` branch. Do not tag `v1.x.x` from `2.x`.
 - Fixes needed by the 2.4.6 production shop go to the old default branch (`master` / `main`) as `v1.x.x`
   and are merged forward into `2.x`.
@@ -96,14 +98,15 @@ Rules:
 
 ## composer.json
 
-The 2.4.9 project files are in [`migration/composer.json`](composer.json) and
-[`migration/composer.lock`](composer.lock). `scripts/setup-agrekom.sh` copies them into `src/`.
+The 2.4.9 project files are [`agrekom/magento/before_build/composer.json`](../agrekom/magento/before_build/composer.json)
+and `composer.lock` (DevOps repo), the same files the production build installs. `scripts/setup-agrekom.sh` copies
+them into `src/`.
 
 Changes against the 2.4.6 project (`Sites/agrekom/composer.json`):
 
 - `magento/product-community-edition` `2.4.6-p14` → `2.4.9`; PHP constraint from Magento 2.4.9.
-- One `vcs` repository per agrekom package (SSH URLs); `preferred-install` = `source` for
-  `agrekom/*`, `e-warsztat/*` and the two themes.
+- `preferred-install` = `source` for `agrekom/*`, `e-warsztat/*` and the two themes (installed from the lock file;
+  `vcs` repositories only for the two themes).
 - `agrekom/*`, `e-warsztat/core-module`, `creativestyle/theme-agrekom`, `creativestyle/theme-ewarsztat`: `^2.0`.
 - `creativestyle/magesuite` `^13.0` with `creativestyle/theme-creativeshop` `^19.13` (19.13.2) – the same
   pair as production. MageSuite 14–16 require Creativeshop 20–22, which our child themes cannot build against
@@ -118,21 +121,20 @@ Changes against the 2.4.6 project (`Sites/agrekom/composer.json`):
 
 ## Adobe security patches
 
-Same patch set as the deploy repo (github.com/jarekherisz/agrekom, branch `agrekom_249`, `magento/before_build/`):
-APSB26-73, -92, -138, -146, -153 for Magento Open Source 2.4.9.
+APSB26-73, -92, -138, -146, -153 for Magento Open Source 2.4.9, maintained by DevOps in
+`agrekom/magento/before_build/`:
 
-- `cweagans/composer-patches` ^2.0 applies [`patches.json`](patches.json) (patch files in [`patches/`](patches/),
-  locked in [`patches.lock.json`](patches.lock.json)) to 23 `magento/*` packages when Composer installs them.
+- `cweagans/composer-patches` ^2.0 applies `patches.json` (patch files in `patches/`, locked in `patches.lock.json`)
+  to 23 `magento/*` packages when Composer installs them.
 - `patches/apply-root-patches.sh` (Composer `post-install-cmd` / `post-update-cmd`) applies `patches/root/*.patch`
   to files outside `vendor/` (`nginx.conf.sample`, `lib/web/underscore.js`, …); already applied patches are skipped.
 - `scripts/setup-agrekom.sh` copies all of it into `src/` and runs `composer patches-repatch` when
   `patches.lock.json` changed since the last run.
-- Keep this patch set identical to the deploy repo – copy `patches/`, `patches.json` and `patches.lock.json` from
-  there, never edit them here only.
 
 ## Disabled modules
 
-[`disabled-modules.txt`](disabled-modules.txt) lists modules turned off locally; `scripts/disable-modules.sh`
+[`agrekom/dev/disabled-modules.txt`](../agrekom/dev/disabled-modules.txt) lists modules turned off locally (the server
+uses `agrekom/magento/before_build/disabled-modules.txt`); `scripts/disable-modules.sh`
 applies it in one `module:disable` call (dependent modules must go together) and skips modules that are not
 installed. `install.sh` and `setup-agrekom.sh` run it before `setup:upgrade`.
 
@@ -182,7 +184,8 @@ model; product dropdowns become text fields so their values survive a product sa
 
 ## Themes
 
-MageSuite themes are built with Node, outside Magento (`scripts/build-themes.sh`):
+MageSuite themes are built with Node, outside Magento (`scripts/build-themes.sh`, which runs the Deployer task
+`build:theme` of the production build in the `deployer` container):
 
 1. `vendor/creativestyle/theme-creativeshop` (parent, 19.13.2)
 2. `vendor/creativestyle/theme-agrekom`
@@ -191,7 +194,8 @@ MageSuite themes are built with Node, outside Magento (`scripts/build-themes.sh`
 Each build writes into `app/design/frontend/creativestyle/<theme>`.
 
 - **Node 16 only.** The themes use `@creativestyle/magesuite-frontend-builder` 3/4 with webpack 4, which fails
-  on Node 17+ (`error:0308010C:digital envelope routines::unsupported`). The script uses nvm.
+  on Node 17+ (`error:0308010C:digital envelope routines::unsupported`). The `deployer` container has Node 16 (nvm)
+  and runs as `linux/amd64`: `gifsicle` / `optipng` ship x86-64 Linux binaries only.
 - **Creativeshop 19, not 22.** The child themes compile the parent's TypeScript. Creativeshop 22's
   `tsconfig.json` (`target: ES2022`) cannot be parsed by their old `ts-loader`. Moving to Creativeshop 22
   means porting both child themes to `magesuite-frontend-builder` 5 – a separate project.
@@ -255,15 +259,16 @@ Production encrypted values (payment keys, SMTP passwords) cannot be decrypted l
 ## Setting up (other developers)
 
 ```bash
-git clone git@github.com:mageage/agrekom-docker-for-magento-249.git && cd agrekom-docker-for-magento-249
+git clone --recurse-submodules git@github.com:mageage/agrekom-docker-for-magento-249.git
+cd agrekom-docker-for-magento-249
 cp auth.json.example auth.json        # repo.magento.com keys
 cp .env.example .env                  # SSH_KEY must reach bitbucket.org/agrekom and github.com/jarekherisz
 ./install.sh                          # fresh Magento 2.4.9 + PL/DE/UK websites
 ./scripts/import-production-db.sh ~/agrekom_sklep01.sql   # optional
-./scripts/setup-agrekom.sh            # agrekom 2.x code, MageSuite, themes, upgrade, reindex
+./scripts/setup-agrekom.sh            # agrekom 2.x code, MageSuite, patches, themes, upgrade, reindex
 ```
 
-Needs on the host: Docker Desktop, nvm (Node 16 is installed by the script), SSH access to the
+Needs on the host: Docker Desktop only (PHP 8.5, Node 16 and Deployer run in containers), SSH access to the
 Bitbucket and GitHub repositories above, and a `~/.gitconfig` with `user.name` / `user.email` – it is mounted
 into the php container (`GITCONFIG` in `.env`) so commits made there carry your identity.
 

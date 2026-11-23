@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Disables the modules listed in migration/disabled-modules.txt (skips modules that are not installed).
+# Disables the modules listed in agrekom/dev/disabled-modules.txt (local list, DevOps repo submodule) (skips modules that are not installed).
 # Run setup:upgrade afterwards - install.sh and scripts/setup-agrekom.sh do this for you.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-wanted=$(grep -vE '^\s*(#|$)' migration/disabled-modules.txt | tr -d ' \r')
+wanted=$(grep -vE '^\s*(#|$)' agrekom/dev/disabled-modules.txt | sed 's/#.*//' | tr -d ' \r' | grep -v '^$')
 installed=$(docker compose exec -T php bin/magento module:status 2>/dev/null | grep -E '^[A-Za-z0-9]+_[A-Za-z0-9]+$' || true)
 modules=$(comm -12 <(echo "$wanted" | sort) <(echo "$installed" | sort) | tr '\n' ' ')
 

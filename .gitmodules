@@ -1,0 +1,4 @@
+[submodule "agrekom"]
+	path = agrekom
+	url = git@github.com:jarekherisz/agrekom.git
+	branch = agrekom_249

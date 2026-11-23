@@ -26,8 +26,8 @@ Containers are named `Agrekom_249-<service>`.
 - Magento Marketplace access keys (https://commercemarketplace.adobe.com → My Profile → Access Keys).
 - Free ports: 8080, 3306, 8025, 15672 (change them in `.env` if needed).
 - For the agrekom code: an SSH key (`SSH_KEY` in `.env`, default `~/.ssh/id_rsa`) with access to
-  bitbucket.org/agrekom, bitbucket.org/e-warsztat and github.com/jarekherisz, and [nvm](https://github.com/nvm-sh/nvm)
-  for the theme builds (Node 16).
+  bitbucket.org/agrekom, bitbucket.org/e-warsztat and github.com/jarekherisz. No PHP, Node or nvm on the host:
+  theme builds and Deployer run in the `deployer` container.
 - A `~/.gitconfig` with `user.name` / `user.email` (`GITCONFIG` in `.env`): mounted into the php container so commits
   in the `vendor/agrekom/*` clones carry your identity.
 
@@ -87,7 +87,7 @@ Import the production database (fixes the MariaDB dump, local URLs, mail to Mail
 ./scripts/import-production-db.sh /path/to/agrekom_sklep01.sql
 ```
 
-Disabled modules: edit [`migration/disabled-modules.txt`](migration/disabled-modules.txt) and apply it
+Disabled modules: the list is [`agrekom/dev/disabled-modules.txt`](agrekom/dev/disabled-modules.txt) (DevOps repo); apply it
 (`install.sh` and `setup-agrekom.sh` do this automatically):
 
 ```bash
@@ -124,16 +124,35 @@ docker compose exec -T php php < scripts/create-websites.php
 Set `MAGENTO_SRC` in `.env` to its absolute path and run `docker compose up -d`. Its `app/etc/env.php` must use the
 container host names: db `db`, OpenSearch `opensearch:9200`, cache/sessions `valkey`, AMQP `rabbitmq:5672`.
 
+## Deployer (DevOps repo)
+
+The DevOps repo is the submodule `agrekom/` – see [PROJECT_RULES.md](PROJECT_RULES.md) for who commits where.
+Deployer runs in the `deployer` container (PHP 8.5, Node 16, rsync, ssh), never with the host PHP:
+
+```bash
+git submodule update --init                    # after a clone without --recurse-submodules
+git submodule update --remote agrekom          # take the latest DevOps agrekom_249, then commit `agrekom`
+./scripts/deployer.sh build test --plan        # plan
+./scripts/deployer.sh build test               # Composer --no-dev + themes into agrekom/temp/build (~10 min)
+./scripts/deployer.sh deploy test              # build + upload + activate on web01.agrekom.pl
+```
+
+The container mounts `agrekom/` as `/project`, `MAGENTO_SRC` as `/var/www/html`, `SSH_KEY`, `SSH_KNOWN_HOSTS` and
+`GITCONFIG`. It runs as `linux/amd64` (like the server) because the theme image tools ship x86-64 binaries only.
+
 ## Layout
 
 ```
-compose.yaml           services
+compose.yaml           services (deployer: profile tools, run via scripts/deployer.sh)
 .env.example           ports, DB credentials, MAGENTO_SRC, SSH_KEY
 auth.json.example      repo.magento.com keys template (auth.json is git-ignored)
 php/                   PHP 8.5 image (Dockerfile, php.ini; mail goes to Mailpit via msmtp)
 nginx/                 vhost + fastcgi_params with website routing
-scripts/               websites, production DB import, theme build, agrekom setup
-migration/             2.4.9 composer.json / composer.lock, disabled-modules.txt, migration README
+scripts/               websites, production DB import, theme build, agrekom setup, deployer.sh
+deployer/              Deployer image: PHP 8.5 CLI, Node 16 (nvm), rsync, ssh – linux/amd64
+migration/             migration README (docs only)
+agrekom/               submodule: DevOps repo jarekherisz/agrekom (agrekom_249) – deploy.php, recipe/,
+                       magento/before_build/ (composer.json/lock, patches, server disabled-modules.txt)
 install.sh             fresh Magento 2.4.9 install
 src/                   Magento code (git-ignored)
 ```
