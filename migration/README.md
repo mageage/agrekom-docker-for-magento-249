@@ -133,8 +133,7 @@ APSB26-73, -92, -138, -146, -153 for Magento Open Source 2.4.9, maintained by De
 
 ## Disabled modules
 
-[`agrekom/dev/disabled-modules.txt`](../agrekom/dev/disabled-modules.txt) lists modules turned off locally (the server
-uses `agrekom/magento/before_build/disabled-modules.txt`); `scripts/disable-modules.sh`
+[`agrekom/dev/disabled-modules.txt`](../agrekom/dev/disabled-modules.txt) lists modules turned off locally; `scripts/disable-modules.sh`
 applies it in one `module:disable` call (dependent modules must go together) and skips modules that are not
 installed. `install.sh` and `setup-agrekom.sh` run it before `setup:upgrade`.
 

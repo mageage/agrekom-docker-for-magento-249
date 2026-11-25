@@ -3,7 +3,8 @@
 # PHP 8.5 and Node 16 from Docker, not from the host.
 #   ./scripts/deployer.sh build test           # build into agrekom/temp/build
 #   ./scripts/deployer.sh build test --plan    # show the plan only
-#   ./scripts/deployer.sh deploy test          # build + upload + activate on the server
+#   ./scripts/deployer.sh deploy test          # upload the existing build + activate on the server (no build)
+#   ./scripts/deployer.sh deploy:full test     # build + deploy
 set -euo pipefail
 cd "$(dirname "$0")/.."
 source .env

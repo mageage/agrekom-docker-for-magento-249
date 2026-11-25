@@ -134,7 +134,8 @@ git submodule update --init                    # after a clone without --recurse
 git submodule update --remote agrekom          # take the latest DevOps agrekom_249, then commit `agrekom`
 ./scripts/deployer.sh build test --plan        # plan
 ./scripts/deployer.sh build test               # Composer --no-dev + themes into agrekom/temp/build (~10 min)
-./scripts/deployer.sh deploy test              # build + upload + activate on web01.agrekom.pl
+./scripts/deployer.sh deploy test              # upload the existing build + activate on test01.agrekom.pl (no build)
+./scripts/deployer.sh deploy:full test         # build + deploy; `prod` = web01.agrekom.pl
 ```
 
 The container mounts `agrekom/` as `/project`, `MAGENTO_SRC` as `/var/www/html`, `SSH_KEY`, `SSH_KNOWN_HOSTS` and
