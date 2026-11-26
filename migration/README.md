@@ -176,9 +176,10 @@ The package has no code, so nothing is lost – fix the name or drop the package
 
 Their EAV attributes stay in the database and point to classes that no longer exist, which broke the admin product
 edit page (`Class "Facebook\BusinessExtension\Model\Config\Source\Product\GoogleProductCategory" does not exist`).
-`scripts/fix-missing-attribute-models.php` (run by `setup-agrekom.sh`) clears every missing source/backend/frontend
-model; product dropdowns become text fields so their values survive a product save. It prints restore SQL
-(`backups/attribute-models-restore.sql`) for when an extension is installed again. Affected now: 6 Facebook and
+The data patch `Agrekom\Product\Setup\Patch\Data\ClearMissingAttributeModels` (`agrekom/product-module` v2.0.1,
+runs once in `setup:upgrade`, locally and on deploy) clears every missing source/backend/frontend model; product
+dropdowns become text fields so their values survive a product save. Restore SQL for when an extension is installed
+again is logged to `var/log/system.log` (`Agrekom_Product: cleared missing ...`). Affected now: 6 Facebook and
 1 Amasty product attributes, 2 Plumrocket `pr_cookie` attributes.
 
 ## Themes
